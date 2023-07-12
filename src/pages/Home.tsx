@@ -5,28 +5,39 @@ import {
   StyleSheet,
   TextInput,
   Platform,
-  TouchableOpacity,
   StatusBar,
   FlatList,
 } from 'react-native';
 import Button from '../components/Button';
 import SkillCard from '../components/SkillCard';
 
+interface SkillData {
+  id: string;
+  name: string;
+  date?: Date;
+}
+
 export const Home = () => {
-  const refresh = 1000;
   const [newSkill, setNewSkill] = useState('');
-  const [mySkills, setMySkills] = useState([]);
+  const [mySkills, setMySkills] = useState<SkillData[]>([]);
   const [greeting, setGreetting] = useState('');
-  const [time, setTime] = useState(20);
-  const timerRef = React.useRef(time);
 
   function handleAddNewSkill() {
-    setMySkills(oldState => [...oldState, newSkill]);
+    const data = {
+      id: String(new Date().getTime()),
+      name: newSkill,
+    };
+    setMySkills(oldState => [...oldState, data]);
   }
 
-  function handleInputSkills(text) {
+  function handleInputSkills(text: string) {
     console.log(text);
     setNewSkill(text);
+  }
+
+  function handleRemoveSkill(id: string) {
+    console.log('Helllo');
+    setMySkills(oldState => oldState.filter(skill => skill.id !== id));
   }
 
   useEffect(() => {
@@ -40,19 +51,19 @@ export const Home = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const timerId = setTimeout(() => {
-      timerRef.current -= 1;
-      if (timerRef.current < 0) {
-        clearInterval(timerId);
-      } else {
-        setTime(timerRef.current);
-      }
-    }, 1000);
-    return () => {
-      clearInterval(timerId);
-    };
-  }, [timerRef]);
+  // useEffect(() => {
+  //   const timerId = setTimeout(() => {
+  //     timerRef.current -= 1;
+  //     if (timerRef.current < 0) {
+  //       clearInterval(timerId);
+  //     } else {
+  //       setTime(timerRef.current);
+  //     }
+  //   }, 1000);
+  //   return () => {
+  //     clearInterval(timerId);
+  //   };
+  // }, [timerRef]);
 
   return (
     <View style={styles.container}>
@@ -69,12 +80,17 @@ export const Home = () => {
         placeholderTextColor={'#555'}
         onChangeText={text => handleInputSkills(text)}
       />
-      <Button onPress={handleAddNewSkill} />
+      <Button title="add" onPress={handleAddNewSkill} />
       <Text style={[styles.tittle, {marginVertical: 50}]}> My Skills </Text>
       <FlatList
         data={mySkills}
-        keyExtractor={item => item}
-        renderItem={({item}) => <SkillCard skill={item} />}
+        keyExtractor={item => item.id}
+        renderItem={({item}) => (
+          <SkillCard
+            skill={item.name}
+            onPress={() => handleRemoveSkill(item.id)}
+          />
+        )}
       />
     </View>
   );
